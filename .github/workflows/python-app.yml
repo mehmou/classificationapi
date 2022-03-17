@@ -1,0 +1,65 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Build ml pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        cd api-ml
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Generate the data
+      run: |
+        cd api-ml
+        python get_data.py    
+        echo "data generated"
+        cd data && ls -R
+
+    - name: Train the model
+      run: |
+        cd api-ml
+        python train.py 
+        echo "model trained"
+        cd models && ls -R
+
+    - uses: actions/upload-artifact@v3
+      name: Upload the model
+      with:
+        name: trained-model
+        path: api-ml/models 
+
+    - uses: actions/download-artifact@v3
+      id: download
+      name: Download the model
+      with:
+        name: trained-model
+        path: api-ml/models
+
+    - name: Display structure of downloaded files
+      run: |
+        ls -R
+        echo ${{steps.download.outputs.download-path}}
+      working-directory: api-ml/models
+
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Saved the trained model.
