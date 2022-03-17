@@ -10,8 +10,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  APP_NAME: flask-ml-flask-api
+
 jobs:
-  build:
+  Build:
 
     runs-on: ubuntu-latest
 
@@ -67,3 +70,22 @@ jobs:
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: Saved the trained model.
+
+  DeployDev:
+    name: Deploy to Dev 
+    #if: github.event_name == 'pull_request'
+    needs: [Build]
+    runs-on: ubuntu-latest
+    environment: 
+      name: Development
+      url: 'https://${{env.APP_NAME}}-dev.herokuapp.com/'
+    steps:
+      - name: Deploy
+        run: echo I am deploying ${{ env.APP_NAME }} at https://${{env.APP_NAME}}-dev.herokuapp.com/
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "${{ env.APP_NAME }}-dev" #Must be unique in Heroku
+          heroku_email: "${{ secrets.HEROKU_EMAIL }}"
+          appdir: "api-ml"
