@@ -16,10 +16,7 @@ def api_home():
 def model_prediction():
     record = json.loads(request.data)['data']
 
-    with open(app.config['MODEL_PATH'], 'rb') as p:
-        model = pickle.load(p)
-
     data = np.array(record)
-    predictions = model.predict(data)
+    predictions = app.config['MODEL'].predict(data)
     
     return jsonify(str(predictions))
