@@ -65,7 +65,7 @@ jobs:
 
     - name: Copy trained model to api-server
       run: |
-        cp -r api-ml/models api-server/api/models  
+        cp -r api-ml/models api-server/api/ 
 
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
